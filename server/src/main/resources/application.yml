@@ -1,0 +1,22 @@
+server:
+  port: 8080
+  error:
+    include-stacktrace: never
+    include-message: never
+
+spring:
+  data:
+    redis:
+      url: ${REDIS_URL:}
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DB:0}
+
+app:
+  github:
+    base-url: ${GITHUB_API_BASE_URL:https://api.github.com}
+  cache:
+    repository-ttl: ${REPO_CACHE_TTL:PT1H}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:*}
