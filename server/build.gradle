@@ -1,20 +1,18 @@
 plugins {
-    id 'org.springframework.boot' version '2.4.1'
-    id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+    id 'org.springframework.boot' version '3.3.5'
+    id 'io.spring.dependency-management' version '1.1.6'
     id 'java'
-    id 'war'
-
 }
-
 
 group = 'com.redis'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '1.8'
 
-configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
-    }
+java {
+    sourceCompatibility = '17'
+}
+
+springBoot {
+    mainClass = 'com.redis.rediscachingjava.RedisCachingJavaApplication'
 }
 
 repositories {
@@ -23,16 +21,22 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    implementation 'org.springframework.boot:spring-boot-starter-security:2.4.1'
-    implementation group: 'com.google.code.gson', name: 'gson', version: '2.7'
-    implementation group: 'redis.clients', name: 'jedis', version: '3.5.1'
-    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
-
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
+tasks.named('test') {
+    useJUnitPlatform()
+}
 
-apply plugin: 'application'
-apply plugin: "war"
-
-mainClassName = 'com.redis.rediscachingjava.RedisCachingJavaApplication'
+// The Spring Boot Gradle plugin's plain `jar` task produces a second,
+// non-executable jar (server-<version>-plain.jar, no Main-Class manifest
+// entry) alongside the real executable one from `bootJar`. Procfile does
+// `java -jar build/libs/*.jar`, and shell glob-sorts the plain jar first
+// ('-' sorts before '.'), so without this it silently launches the wrong,
+// non-runnable jar in production.
+tasks.named('jar') {
+    enabled = false
+}
