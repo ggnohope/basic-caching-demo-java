@@ -13,6 +13,20 @@ server:
 # using @Value("${REDIS_URL:}") directly, which Spring's property resolver
 # handles fine outside of the Redis auto-configuration's URL-parsing path.
 
+spring:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: repository-lookup-consumer
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.redis.rediscachingjava.kafka
+
 app:
   github:
     base-url: ${GITHUB_API_BASE_URL:https://api.github.com}
