@@ -169,9 +169,15 @@ Redis's `LettuceConnectionFactory`, which pools connections and reconnects
 automatically. This directly eliminates the "connection permanently broken
 until server restart" bug hit during this session's debugging.
 
-Config (`application.yml`):
+**Correction (found during Task 11 end-to-end verification against real
+Redis, after this spec was originally written and approved):** the paragraph
+below describing `spring.data.redis.*` config is **wrong** and was not what
+got implemented. Kept here, struck through in spirit, for the historical
+record — see the replacement immediately after.
 
-```yaml
+~~Config (`application.yml`):~~
+
+~~```yaml
 spring:
   data:
     redis:
@@ -180,13 +186,40 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
       database: ${REDIS_DB:0}
-```
+```~~
 
-Spring Boot's Redis auto-configuration already implements "use `url` if
+~~Spring Boot's Redis auto-configuration already implements "use `url` if
 non-empty, otherwise fall back to discrete host/port/password/database" —
 this is exactly the behavior the old manual `if (!redisUrl.equals(""))`
 branch implemented by hand in `Repository.java`, now handled by the
-framework.
+framework.~~
+
+**What's actually true:** Spring Boot 3.3.5's Redis auto-configuration does
+**not** gracefully fall back — it throws `Invalid Redis URL ''` and refuses
+to start when `spring.data.redis.url` resolves to an empty string, which is
+exactly what `${REDIS_URL:}` produces whenever `REDIS_URL` is unset. This
+was only caught by actually booting the app against a real Redis container
+(Task 11); none of the mocked unit tests could catch it, since none of them
+construct a real `RedisConnectionFactory`.
+
+The fix: `application.yml` does not set `spring.data.redis.*` at all. A
+`config/RedisConfig.java` `@Configuration` class builds the
+`LettuceConnectionFactory` bean by hand, injecting `REDIS_URL` and the
+discrete host/port/password/database vars directly via `@Value` and
+replicating the exact same "URL wins if non-empty, else discrete
+host/port/password/database" fallback the old `Repository.java` implemented
+manually — just using `io.lettuce.core.RedisURI` to parse the URL instead of
+Jedis's constructor. Spring Boot's own `LettuceConnectionConfiguration` bean
+method is `@ConditionalOnMissingBean(RedisConnectionFactory.class)`, so it
+correctly backs off once this hand-built bean exists — no duplicate-bean
+conflict.
+
+Known non-blocking follow-up (flagged in code review, not fixed here since
+the app doesn't use pool/SSL/timeout tuning today): prefer Spring Boot
+3.1+'s `RedisConnectionDetails` extension point over a fully hand-built
+factory — it would let Boot's own factory-building code keep handling
+pool/SSL/timeout properties for free while only overriding host/port/
+credential resolution.
 
 ## GitHub HTTP client: `URLConnection` → `RestClient`
 

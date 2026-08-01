@@ -1149,7 +1149,28 @@ the spec's testing decision. This task proves the real, wired-up app still
 meets the exact contract, the same way it was manually verified earlier this
 session.
 
-**Files:** none (verification only).
+> **Outcome note (added after execution):** This step earned its place in the
+> plan. Booting the real app against real Redis surfaced a defect none of the
+> mocked unit tests could catch: Spring Boot 3.3.5's Redis auto-configuration
+> throws `Invalid Redis URL ''` and refuses to start when
+> `spring.data.redis.url` resolves to an empty string — which is exactly what
+> `${REDIS_URL:}` produces whenever `REDIS_URL` is unset. The design spec's
+> assumption ("Spring Boot's Redis auto-configuration already implements
+> this fallback") was wrong. Fixed in commit `5007568`: removed
+> `spring.data.redis.*` from `application.yml` and added
+> `config/RedisConfig.java`, which builds the `LettuceConnectionFactory`
+> by hand from `@Value("${REDIS_URL:}")` plus discrete host/port/password/db,
+> replicating the original tutorial code's exact fallback — verified against
+> a real Redis container on both the URL and discrete-property paths. Code
+> review flagged two legitimate, non-blocking follow-ups for later: prefer
+> Spring Boot 3.1+'s `RedisConnectionDetails` extension point over a
+> hand-built factory (would preserve auto-config's pool/SSL/timeout wiring,
+> unused today so not urgent), and `RedisURI.getPassword()` is deprecated in
+> Lettuce 6.3.x in favor of `getCredentialsProvider()`.
+
+**Files:** none (verification only) — but see the outcome note above; this
+task ended up producing a real code fix, reviewed and committed the same way
+as every other task in this plan.
 
 - [ ] **Step 1: Ensure Redis is running**
 
