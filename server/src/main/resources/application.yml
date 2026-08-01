@@ -4,14 +4,14 @@ server:
     include-stacktrace: never
     include-message: never
 
-spring:
-  data:
-    redis:
-      url: ${REDIS_URL:}
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:}
-      database: ${REDIS_DB:0}
+# spring.data.redis.* is intentionally NOT set here. Spring Boot 3.3.x's Redis
+# auto-configuration fails to start when spring.data.redis.url resolves to an
+# empty string (as it would via ${REDIS_URL:} when REDIS_URL is unset) — it
+# does not gracefully fall back to host/port the way the old hand-rolled
+# Jedis code did. RedisConfig.java builds the LettuceConnectionFactory
+# manually instead, replicating the same REDIS_URL-wins-if-non-empty fallback
+# using @Value("${REDIS_URL:}") directly, which Spring's property resolver
+# handles fine outside of the Redis auto-configuration's URL-parsing path.
 
 app:
   github:
