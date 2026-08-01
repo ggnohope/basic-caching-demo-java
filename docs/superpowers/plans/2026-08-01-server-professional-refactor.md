@@ -1103,10 +1103,15 @@ git commit -m "feat: add RepositoryController, restoring the /repos/{username} e
 
 ### Task 10: Update `Procfile` for jar packaging
 
+There are two `Procfile`s in this repo — root and `server/` — both reference
+the old `.war` glob and both need the same fix (found during Task 2's code
+quality review, not caught in the original spec).
+
 **Files:**
 - Modify: `Procfile`
+- Modify: `server/Procfile`
 
-- [ ] **Step 1: Change the jar glob**
+- [ ] **Step 1: Change the jar glob in both files**
 
 In `Procfile`, replace:
 ```
@@ -1116,13 +1121,22 @@ with:
 ```
 web: java -Dserver.port=$PORT $JAVA_OPTS -jar server/build/libs/*.jar
 ```
+
+In `server/Procfile`, replace:
+```
+web: java -Dserver.port=$PORT $JAVA_OPTS -jar build/libs/*.war
+```
+with:
+```
+web: java -Dserver.port=$PORT $JAVA_OPTS -jar build/libs/*.jar
+```
 (`server/build.gradle` no longer applies the `war` plugin as of Task 2, so
 the build now produces a `.jar`, not a `.war`.)
 
 - [ ] **Step 2: Commit**
 
 ```bash
-git add Procfile
+git add Procfile server/Procfile
 git commit -m "build: update Procfile for jar packaging"
 ```
 
