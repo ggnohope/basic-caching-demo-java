@@ -66,7 +66,7 @@ more information</a>
 
 ## How to run it locally?
 
-#### Open the file `server/src/main/resources/application.properties`, and provide the Redis configuration:
+#### Configure Redis, via environment variables (see `server/src/main/resources/application.yml`):
    	- REDIS_URL: Redis server url
     - REDIS_HOST: Redis server host
 	- REDIS_PORT: Redis server port
@@ -74,18 +74,15 @@ more information</a>
 
 #### Run backend
 
-1. Install gradle (Use Gradle 6.3 or later) (on mac: https://gradle.org/install/) 
+1. Install JDK 17 or later (on mac: `brew install openjdk@17`)
 
-2. Install JDK (use 8 or later version) (on mac: https://docs.oracle.com/javase/10/install/installation-jdk-and-jre-macos.htm)
-
-3. From the root directory of the project, run the following commands:
+2. From the root directory of the project, run the following commands (the bundled Gradle wrapper downloads the correct Gradle version automatically):
 ``` sh
-cd server
-./gradlew build
-./gradlew run
+./gradlew server:build
+./gradlew server:bootRun
 ```
 
-4. Point your browser to `localhost:5000`.
+3. Point your browser to `localhost:8080`.
 
 #### Run frontend
 

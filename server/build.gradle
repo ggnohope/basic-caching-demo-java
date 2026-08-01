@@ -30,3 +30,13 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+// The Spring Boot Gradle plugin's plain `jar` task produces a second,
+// non-executable jar (server-<version>-plain.jar, no Main-Class manifest
+// entry) alongside the real executable one from `bootJar`. Procfile does
+// `java -jar build/libs/*.jar`, and shell glob-sorts the plain jar first
+// ('-' sorts before '.'), so without this it silently launches the wrong,
+// non-runnable jar in production.
+tasks.named('jar') {
+    enabled = false
+}
